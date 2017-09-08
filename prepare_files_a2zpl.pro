@@ -57,6 +57,7 @@ PRO prepare_files_a2zpl,$
 ; 
 ;-
   
+  
   IF keyword_set(help) THEN BEGIN
     doc_library,'prepare_files_a2zpl', DIRECTORY='/Users/lbugnet/WORK/A2Zp/', PATH='/Users/lbugnet/WORK/A2Zp/'
     RETURN
@@ -80,6 +81,7 @@ if (n_elements(STAR_PATH_PSD_LIST) ne 0) then begin
   endif
   STAR_PATH_PSD=STAR_PATH_PSD_LIST(0)
   n_stars_tot=n_elements(STAR_PATH_PSD_LIST)
+  print, n_stars_tot, 'ouiiii'
   if STREGEX(STAR_PATH_PSD, 'K2') ne -1 then begin 
     TYPE='K2'
     champ=''
@@ -170,5 +172,6 @@ if (n_elements(STAR_PATH_KIC_LIST) ne 0) then begin
 
   print, 'TYPE=', TYPE
 endif
-  
+  print, 'n_stars_tot ='
+  print, n_stars_tot
 END

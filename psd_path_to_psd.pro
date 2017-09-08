@@ -12,7 +12,7 @@ PRO PSD_PATH_TO_PSD, STAR_PATH_PSD=STAR_PATH_PSD, STAR_TAB_PSD=STAR_TAB_PSD,  EX
   ;
   ;--- STAR_TAB_PSD contient freq/power des etoiles -----------------------------------
   ;------------------------------------------------------------------------------------
-  
+  ;resolve_all, UNRESOLVED=variable, /CONTINUE_ON_ERROR
   if EXTENSION eq 'fits' then begin
     a=readfits( STAR_PATH_PSD)
     data_arr_freq=a(0,*)

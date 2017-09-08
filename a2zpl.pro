@@ -4,8 +4,9 @@ PRO A2ZPL,$
   FILE_OUTPUT_A2Z_PATH=FILE_OUTPUT_A2Z_PATH, MAG_COR=MAG_COR, FREQ_INIC_GR_DEB=FREQ_INIC_GR_DEB, FREQ_FIN_GR=FREQ_FIN_GR, FREQ_INIC_GR_NS=FREQ_INIC_GR_NS, FREQ_FIN_GR_NS=FREQ_FIN_GR_NS,$
   DAY=DAY, CALCUL_SLOPE=CALCUL_SLOPE, PARAMS=PARAMS, PATH_OUTPUT=PATH_OUTPUT, PATH_DATA=PATH_DATA, PATH_TABLE=PATH_TABLE,$
   ;OUT
-  STAR_TAB_PSD=STAR_TAB_PSD, OUTPUT_A2Z=OUTPUT_A2Z, NUMAX_GUESS=NUMAX_GUESS, SOLAR_LIKE=SOLAR_LIKE, SUN=SUN, GOLD=GOLD,  HELP=HELP
-
+  STAR_TAB_PSD=STAR_TAB_PSD, OUTPUT_A2Z=OUTPUT_A2Z, NUMAX_GUESS=NUMAX_GUESS, SOLAR_LIKE=SOLAR_LIKE, SUN=SUN, GOLD=GOLD,  HELP=HELP,$
+  ;PYTHON
+  N_STARS_TOT=N_STARS_TOT
 ;+
 ; :Author: Lisa BUGNET
 
@@ -124,6 +125,8 @@ PRO A2ZPL,$
   ;VARLAW.pro -> guess numax from metric [x]
 
 ;-
+;resolve_all, UNRESOLVED=variable, /CONTINUE_ON_ERROR
+
 IF keyword_set(help) THEN BEGIN
   doc_library,'A2ZPL', DIRECTORY='/Users/lbugnet/WORK/A2Zp/', PATH='/Users/lbugnet/WORK/A2Zp/'
   RETURN
@@ -160,6 +163,7 @@ TYPE=''
 PREPARE_FILES_A2ZPL, STAR_PATH_PSD_LIST=STAR_PATH_PSD_LIST, STAR_PATH_LC_LIST=STAR_PATH_LC_LIST, STAR_KIC_LIST_TXT=STAR_KIC_LIST_TXT, STAR_PATH_KIC_LIST=STAR_PATH_KIC_LIST, FILE_OUTPUT_A2Z_PATH=FILE_OUTPUT_A2Z_PATH, $
    TYPE=TYPE, CHAMP=CHAMP, N_STARS_TOT=N_STARS_TOT, PATH_OUTPUT=PATH_OUTPUT
 
+
 ;---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------;
 ;-------- SKIP POWVAR IF OUTPUT_A2ZP ALREADY EXISTS (n_elements(FILE_OUTPUT_A2Z_PATH) eq 1) --------------------------------------------------------------------------------------------------;
 ;---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------;
@@ -179,7 +183,6 @@ if n_elements(STAR_KIC_LIST_TXT) ne 0 then begin
 endif
 COMPUTE_PSD_DATA, STAR_PATH_LC=STAR_PATH_LC, STAR_LC=STAR_LC, STAR_PATH_PSD=STAR_PATH_PSD, STAR_KIC=STAR_KIC, STAR_PATH_KIC=STAR_PATH_KIC,$
   TYPE=TYPE, CHAMP=CHAMP, STAR_TAB_PSD=STAR_TAB_PSD, HELP=HELP, PATH_OUTPUT=PATH_OUTPUT
-  
   OUTPUT_A2Z = DBLARR(N_STARS_TOT,11)
   ID_STARS=[]
   INIC=0L
