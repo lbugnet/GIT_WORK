@@ -1,4 +1,4 @@
-PRO varlaw, TYPE=TYPE, CHAMP=CHAMP, DAY=DAY, OUTPUT_A2Z=OUTPUT_A2Z, NUMAX_GUESS=NUMAX_GUESS, NG_MAX=NG_MAX, NG_MIN=NG_MIN, res=res, slope_fit=slope_fit, threshold=threshold, xx=xx, yy=yy, HELP=HELP, PATH_OUTPUT=PATH_OUTPUT, PATH_DATA=PATH_DATA, PATH_TABLE=PATH_TABLE
+PRO varlaw, TYPE=TYPE, CHAMP=CHAMP, DAY=DAY, OUTPUT_A2Z=OUTPUT_A2Z, NUMAX_GUESS=NUMAX_GUESS, NG_MAX=NG_MAX, NG_MIN=NG_MIN, GLOBAL=GLOBAL,res=res, slope_fit=slope_fit, threshold=threshold, xx=xx, yy=yy, HELP=HELP, PATH_OUTPUT=PATH_OUTPUT, PATH_DATA=PATH_DATA, PATH_TABLE=PATH_TABLE
 
 ;+
 ;----------------------------------------------------------------------------

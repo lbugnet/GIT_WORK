@@ -154,10 +154,17 @@ if n_elements(STAR_PATH_PSD_LIST) ne 0 then begin
   if (STREGEX(STAR_PATH_PSD_LIST(0), 'Start_Q5') ne -1) then fill='Q5'
   if ((STREGEX(STAR_PATH_PSD_LIST(0), 'LC_DR25') ne -1) or (STREGEX(STAR_PATH_PSD_LIST(0), 'NO_GOLD_STANDARD_DR25/LC/OUT'))) then cadence='LC'
   if ((STREGEX(STAR_PATH_PSD_LIST(0), 'SC_PDC_DR25') ne -1) or (STREGEX(STAR_PATH_PSD_LIST(0), 'NO_GOLD_STANDARD_DR25/SC/RESULTS') ne -1)) then cadence='SC'
+  if (STREGEX(STAR_PATH_PSD_LIST(0), 'MISS') ne -1) then fill='MISS'
 endif
 if (n_elements(sun) eq 0) then sun=''
 if (n_elements(gold) eq 0) then gold=''
-if (n_elements(MAG_COR) eq 0) then MAG_COR=0                   ; Default is high frequency noise
+if (n_elements(MAG_COR) eq 0) then MAG_COR=1                   ; Default is corretion
+if n_elements(STAR_KIC_LIST_TXT) ne 0 then begin
+  if (STREGEX(STAR_KIC_LIST_TXT, 'APOKASC') ne -1) then fill='APOKASC'
+  if ((STREGEX(STAR_KIC_LIST_TXT, 'APOKASC') ne -1) and (cadence eq '')) then cadence='LC'
+  
+endif
+
 CHAMP=''
 TYPE=''
 PREPARE_FILES_A2ZPL, STAR_PATH_PSD_LIST=STAR_PATH_PSD_LIST, STAR_PATH_LC_LIST=STAR_PATH_LC_LIST, STAR_KIC_LIST_TXT=STAR_KIC_LIST_TXT, STAR_PATH_KIC_LIST=STAR_PATH_KIC_LIST, FILE_OUTPUT_A2Z_PATH=FILE_OUTPUT_A2Z_PATH, $
@@ -190,8 +197,13 @@ COMPUTE_PSD_DATA, STAR_PATH_LC=STAR_PATH_LC, STAR_LC=STAR_LC, STAR_PATH_PSD=STAR
   ;---------------
   ; Loop by star
   ;---------------
-  
-FOR ns = INIC, n_stars_tot-1 DO BEGIN
+  KEPTAB=[]
+  AVV=[]
+  FEHH=[]
+  HMAGG=[]
+  RADIUSS=[]
+  TEFFF=[]
+FOR ns = INIC, n_stars_tot-2 DO BEGIN
 print, ns
   if (n_elements(STAR_PATH_PSD_LIST) ne 0) then begin
     STAR_PATH_PSD=STAR_PATH_PSD_LIST(ns)
@@ -214,22 +226,22 @@ print, ns
     TYPE=TYPE, CHAMP=CHAMP, STAR_TAB_PSD=STAR_TAB_PSD,  ID_STAR=ID_STAR, HELP=HELP, PATH_OUTPUT=PATH_OUTPUT
 
   POWVAR, STAR_TAB_PSD=STAR_TAB_PSD, OUTPUT_A2Z_1=OUTPUT_A2Z_1, FREQ_INIC_GR, FREQ_FIN_GR, FREQ_INIC_GR_NS, FREQ_FIN_GR_NS, ID_STAR=ID_STAR, STAR_PATH_PSD=STAR_PATH_PSD, $
-    CADENCE=CADENCE, STAR_PATH_LC=STAR_PATH_LC, EPIC=EPIC, kpp=kpp, MAG_COR=MAG_COR, HELP=HELP, PATH_OUTPUT=PATH_OUTPUT
+    CADENCE=CADENCE, STAR_PATH_LC=STAR_PATH_LC, EPIC=EPIC, kpp=kpp, MAG_COR=MAG_COR, HELP=HELP, PATH_OUTPUT=PATH_OUTPUT, KEPMAG=KEPMAG,AV=AV, TEFF=TEFF, FEH=FEH, RADIUS=RADIUS, HMAG=HMAG
     
   ID_STARS=[ID_STARS, ID_STAR]
 
   OUTPUT_A2Z[ns,*]=OUTPUT_A2Z_1
-
+  KEPTAB=[KEPTAB, KEPMAG]
+  TEFFF=[TEFFF, TEFF] 
+  FEHH=[FEHH, FEH] 
+  RADIUSS=[RADIUSS,RADIUS] 
+  HMAGG=[HMAGG, HMAG]
+  AVV=[AVV,AV]
   if (ns mod 50) eq 0 then save, file=PATH_OUTPUT+TYPE+'/'+SOLAR_LIKE+SUN+'/'+CHAMP+GOLD+cadence+'_'+fill+'_'+strtrim(FREQ_INIC_GR,1)+'_'+'output_numax_all'+'.sav', $
-    OUTPUT_A2Z, NUMAX_GUESS, NG_MAX, NG_MIN ; sauvegarde de secours
+    OUTPUT_A2Z, NUMAX_GUESS, NG_MAX, NG_MIN, KEPTAB , AVV; sauvegarde de secours
 
 ENDFOR
 
-;----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------;
-;------------------ SAVE OUTPUT_A2Z FROM POWVAR -----------------------------------------------------------------------------------------------------------------------------------------------;
-;----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------;
-
-save, file=PATH_OUTPUT+TYPE+'/'+SOLAR_LIKE+SUN+'/'+CHAMP+GOLD+cadence+'_'+fill+'_'+strtrim(FREQ_INIC_GR,1)+'_'+'output_numax_all'+'.sav', OUTPUT_A2Z, NUMAX_GUESS, NG_MAX, NG_MIN
 
 ;----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------;
 ;------------ SLOPE ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------;
@@ -237,7 +249,7 @@ save, file=PATH_OUTPUT+TYPE+'/'+SOLAR_LIKE+SUN+'/'+CHAMP+GOLD+cadence+'_'+fill+'
 
 OUTPUT_OK: ; if OUTPUT_A2ZP ALREADY EXISTS (n_elements(FILE_OUTPUT_A2Z_PATH) eq 1)
 
-if n_elements(CALCUL_SLOPE) eq 0 then CALCUL_SLOPE=0
+if n_elements(CALCUL_SLOPE) eq 0 then CALCUL_SLOPE=1
 if n_elements(PARAMS) eq 0 then PARAMS=['numax','dnu'];, 'numax_savita', 'dnu_savita'] ; PAR DEFAULT ON CALCULE LES DEUX
 save_slope_powvar_numax, OUTPUT_A2Z=OUTPUT_A2Z, XX=XX, YY=YY, TYPE=TYPE, RES=RES, THRESHOLD=THRESHOLD, SLOPE_FIT=SLOPE_FIT, CHAMP=CHAMP, SOLAR_LIKE=SOLAR_LIKE, fill=fill, $
   CALCUL_SLOPE=CALCUL_SLOPE, cadence=cadence, FREQ_INIC_GR=FREQ_INIC_GR, GOLD=GOLD,FILE_OUTPUT_A2Z_PATH=FILE_OUTPUT_A2Z_PATH, PARAMS=PARAMS, PATH_OUTPUT=PATH_OUTPUT
@@ -248,6 +260,12 @@ save_slope_powvar_numax, OUTPUT_A2Z=OUTPUT_A2Z, XX=XX, YY=YY, TYPE=TYPE, RES=RES
 ;----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------;
 
 varlaw, TYPE=TYPE, CHAMP=CHAMP, OUTPUT_A2Z=OUTPUT_A2Z, NUMAX_GUESS=NUMAX_GUESS, NG_MAX=NG_MAX, NG_MIN=NG_MIN, DAY=DAY, res=res, slope_fit=slope_fit, threshold=threshold, xx=xx, yy=yy, HELP=HELP, PATH_OUTPUT=PATH_OUTPUT, PATH_DATA=PATH_DATA, PATH_TABLE=PATH_TABLE
+
+;----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------;
+;------------------ SAVE OUTPUT_A2Z FROM POWVAR -----------------------------------------------------------------------------------------------------------------------------------------------;
+;----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------;
+
+save, file=PATH_OUTPUT+TYPE+'/'+SOLAR_LIKE+SUN+'/'+CHAMP+GOLD+cadence+'_'+fill+'_'+strtrim(FREQ_INIC_GR,1)+'_'+'output_numax_all'+'.sav', OUTPUT_A2Z, KEPTAB, AVV, TEFFF, FEHH, RADIUSS,HMAGG,NUMAX_GUESS, NG_MAX, NG_MIN
 
 
 ;----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------;

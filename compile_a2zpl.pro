@@ -16,6 +16,8 @@ resolve_all, UNRESOLVED=variable, /CONTINUE_ON_ERROR
 .r /Users/lbugnet/bin/astrolib/sxpar.pro
 .r /Users/lbugnet/bin/coyote/CGERRORMSG.pro
 .r /Users/lbugnet/bin/astrolib/gettok.pro
+.r /Users/lbugnet/bin/astrolib/remchar.pro
+.r /Users/lbugnet/bin/astrolib/strnumber.pro
 .r /Users/lbugnet/bin/astrolib/valid_num.pro
 .r /Users/lbugnet/bin/astrolib/*.pro
 .r /Users/lbugnet/bin/*.pro

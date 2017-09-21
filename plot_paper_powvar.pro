@@ -1,4 +1,4 @@
-pro plot_paper_powvar
+pro plot_paper_powvar, all=all
 
 restore, '/Users/lbugnet/DATA/METRIC/KEPLER/LC__0.700000_output_numax_all.sav', /verbose
 restore, '/Users/lbugnet/DATA/METRIC/KEPLER/KEPLER_varlaw_20J_ALL_KEPLER_LC0.700000_.sav', /verbose
@@ -58,7 +58,13 @@ stop
 ;---------------------------------------------------------------------------------
 
 restore, '/Users/lbugnet/TABLE/Q1_17_closeout_starproperties_final.idl', /verbose
-restore, '/Users/lbugnet/DATA/METRIC/KEPLER/LC__0.700000_output_numax_all.sav', /verbose
+if all eq 'all' then begin
+  restore, '/Users/lbugnet/DATA/METRIC/KEPLER/LC__0.700000_output_numax_all.sav', /verbose
+endif
+if all eq 'APOKASC' then begin
+  restore, '/Users/lbugnet/DATA/METRIC/KEPLER/LC_APOKASC_0.700000_output_numax_all.sav', /verbose
+endif
+
 feh=feh_in
 match, long(kic), long(output_a2z[*,0]), i1,i2
 match, long(KIC_s), long(output_a2z[i2,0]), in1,in2
@@ -162,7 +168,7 @@ pp3=plot(numax(in1(wp(wspe(order)))), exp(yfit[0]*X(order)),   xlog=1, ylog=1, c
    p1=plot(XX, XX*result(1)+result(0), thick=2, /overplot)
    cb = COLORBAR(POSITION=[0.45,0.75,0.85,0.8], RGB_TABLE=33, RANGE=[-1.98,0.56], font_size=10,TEXT_ORIENTATION=1, TITLE='$[Fe/H]$')
    ;p1.save, '/Users/lbugnet/DATA/METRIC/KEPLER/CLUSTER_ENRICO/mass_metal_effect_all_RG.png'
-   p1.save, '/Users/lbugnet/DATA/METRIC/KEPLER/CLUSTER_ENRICO/mass_metal_effect_all_RG_SPE.png'
+   p1.save, '/Users/lbugnet/DATA/METRIC/KEPLER/CLUSTER_ENRICO/mass_metal_effect_'+all+'_RG_SPE.png'
 
 ;METAL VS MASS  
 p1=plot( feh, yout*mass^(-t)*(numax(in1(wp(wspe)))/3147.0)^(-s) ,DIM=[600,400], yr=[0,20] ,xr=[-2,1],ylog=0, rgb_table=33,font_name='Times',SYM_SIZE=1,vert_colors= 255./(3.72-0.33)*(mass-0.33), SYM_THICK=1,$
@@ -182,7 +188,7 @@ p1=plot( feh, yout*mass^(-t)*(numax(in1(wp(wspe)))/3147.0)^(-s) ,DIM=[600,400], 
   p1=plot(XX, XX*result(1)+result(0), thick=2, /overplot)
  cb = COLORBAR(POSITION=[0.2,0.75,0.6,0.8], RGB_TABLE=33, RANGE=[0.33,3.72], font_size=10, TEXT_ORIENTATION=1, TITLE='$Mass$')
 ;p1.save, '/Users/lbugnet/DATA/METRIC/KEPLER/CLUSTER_ENRICO/metal_mass_effect_all_RG.png'
-p1.save, '/Users/lbugnet/DATA/METRIC/KEPLER/CLUSTER_ENRICO/metal_mass_effect_all_RG_SPE.png'
+p1.save, '/Users/lbugnet/DATA/METRIC/KEPLER/CLUSTER_ENRICO/metal_mass_effect_'+all+'_RG_SPE.png'
 
 stop
 ;list aligned stars

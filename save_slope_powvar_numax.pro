@@ -99,10 +99,12 @@ if n_elements(PATH_OUTPUT) eq 0 then PATH_OUTPUT='~/DATA/METRIC/'
 if n_elements(PATH_TABLE) eq 0 then PATH_TABLE='~/DATA/TABLES/'
 if n_elements(PATH_DATA) eq 0 then PATH_DATA='/Volumes/TEMP/'
 
+GLOBAL=''
+
 if CALCUL_SLOPE eq 1 then begin
 
 COMPUTE_SLOPE=1 ; PAR DEFAUT ON CALCULE LA PENTE SUR LES DONNEES
-
+;COMPUTE_SLOPE=0 ;si on veut utiliser la pente totale Kepler (numax)
   if (n_elements(FILE_OUTPUT_A2Z_PATH) eq 1) then begin
     if STREGEX(FILE_OUTPUT_A2Z_PATH, 'sav') ne -1 then restore, FILE_OUTPUT_A2Z_PATH else print, 'output_a2z understood';RESTORE OUTPUT_A2Z DATA
   endif
@@ -113,6 +115,8 @@ COMPUTE_SLOPE=1 ; PAR DEFAUT ON CALCULE LA PENTE SUR LES DONNEES
       ;file 2: Contient les 16000 étoiles dont on connait un numax par A2Z
       restore, PATH_TABLE+'results_A2Z_all.sav', /verbose  ;KIC_S, dnu, ednu, fmin, fmax, numax
       readcol,  PATH_TABLE+'Vrard_2016_6111_DP.txt', kic_vrard, dnu_vrard, dp_vrard, edp_vrard, q_vrard, m_vrard, em_vrard, alias_vrard, measure_vrard, status_vrard, /silent, format='L,D,D,D,D,D,D,A,A,A', stringskip='#', DELIMITER=';'
+      ;match, kic_vrard, kic_s, i1, i2
+      ;pp=plot(dnu_vrard(i1), dnu(i2))
     endif else if SOLAR_LIKE eq 'SOLAR_LIKE' then begin
       readcol, PATH_OUTPUT+TYPE+'/SOLAR_LIKE/A2Z_results_goldstd_sorted.txt', KIC_s, flagg, fmin, fmax, numax, enumax, format='L,D,D,D,D,D'
     endif
@@ -214,7 +218,7 @@ FOR ii=0, n_elements(PARAMS)-1 do begin
     OUTPUT_a2zp=output_a2z
     match, long(OUTPUT_A2Zp[*,0]), long(kic_savi), ind1, ind2
     ;numax_s=numax_s(ind2)
-    numax=numax_s
+    numax=numax_s(ind2)
     kic_s=OUTPUT_a2zp[ind1,0]
     OUTPUT_A2Zp1=OUTPUT_a2zp[ind1,*]
     OUTPUT_A2Zp=OUTPUT_A2Zp1
@@ -250,7 +254,6 @@ FOR ii=0, n_elements(PARAMS)-1 do begin
     OUTPUT_A2Zp1=OUTPUT_a2zp[ind1,*]
     OUTPUT_A2Zp=OUTPUT_A2Zp1
     OUTPUT_A2Z=OUTPUT_A2Zp
-    stop
   endif
 
   if (PARAMS[ii] eq 'dnu_savita_RG_LIST_15470') then begin ; les missclassified n'ont pas encore étées calculées par powvar.....
@@ -271,7 +274,138 @@ FOR ii=0, n_elements(PARAMS)-1 do begin
     OUTPUT_A2Z=OUTPUT_A2Zp
   endif
 
-  ;--------------------------------------------------------------------
+if (PARAMS[ii] eq 'can_numax') then begin 
+  readcol, PATH_TABLE+'comp_results_APOKASC_all2.txt',  Kic, numax , skipline=0,  /silent, format='L'
+  restore, '/Users/lbugnet/DATA/METRIC/KEPLER/LC_APOKASC_0.700000_output_numax_all.sav', /verbose
+  ;readcol, '/Users/lbugnet/DATA/METRIC/KEPLER/POWVAR_A2Z_STARS.txt', OUTPUT_A2Z0, OUTPUT_A2Z1, format='L,D'
+  OUTPUT_A2Zp=dblarr(n_elements(output_a2z), 11)
+  OUTPUT_a2zp=output_a2z
+  match, long(OUTPUT_A2Zp[*,0]), long(kic), ind1, ind2
+  kic_s=kic(ind2)
+  OUTPUT_A2Zp1=OUTPUT_a2zp[ind1,*]
+  OUTPUT_A2Z=OUTPUT_A2Zp1
+endif
+
+if (PARAMS[ii] eq 'can_dnu') then begin
+  readcol, PATH_TABLE+'comp_results_APOKASC_all2.txt',  Kic, numax , dnu,  skipline=1,  /silent, format='L'
+  numax=dnu
+  restore, '/Users/lbugnet/DATA/METRIC/KEPLER/LC_APOKASC_0.700000_output_numax_all.sav', /verbose
+  ;readcol, '/Users/lbugnet/DATA/METRIC/KEPLER/POWVAR_A2Z_STARS.txt', OUTPUT_A2Z0, OUTPUT_A2Z1, format='L,D'
+  OUTPUT_a2zp=output_a2z
+  match, long(OUTPUT_A2Z[*,0]), long(Kic), ind1, ind2
+  kic_s=kic(ind2)
+  OUTPUT_A2Zp1=OUTPUT_a2z[ind1,*]
+  OUTPUT_A2Z=OUTPUT_A2Zp1
+endif
+if (PARAMS[ii] eq 'cor_numax') then begin
+  readcol, PATH_TABLE+'comp_results_APOKASC_all2.txt',  Kic, numax1 ,dnu1, numax, skipline=1,  /silent, format='L'
+  restore, '/Users/lbugnet/DATA/METRIC/KEPLER/LC_APOKASC_0.700000_output_numax_all.sav', /verbose
+  ;readcol, '/Users/lbugnet/DATA/METRIC/KEPLER/POWVAR_A2Z_STARS.txt', OUTPUT_A2Z0, OUTPUT_A2Z1, format='L,D'
+  OUTPUT_A2Zp=dblarr(n_elements(output_a2z), 11)
+  OUTPUT_a2zp=output_a2z
+  match, long(OUTPUT_A2Zp[*,0]), long(kic), ind1, ind2
+  OUTPUT_A2Zp1=OUTPUT_a2zp[ind1,*]
+  OUTPUT_A2Z=OUTPUT_A2Zp1
+    kic_s=kic(ind2)
+
+endif
+if (PARAMS[ii] eq 'cor_dnu') then begin
+  readcol, PATH_TABLE+'comp_results_APOKASC_all2.txt',  Kic, numax1 ,dnu1, numax, dnu, skipline=1,  /silent, format='L'
+  numax=dnu
+  restore, '/Users/lbugnet/DATA/METRIC/KEPLER/LC_APOKASC_0.700000_output_numax_all.sav', /verbose
+  ;readcol, '/Users/lbugnet/DATA/METRIC/KEPLER/POWVAR_A2Z_STARS.txt', OUTPUT_A2Z0, OUTPUT_A2Z1, format='L,D'
+  OUTPUT_A2Zp=dblarr(n_elements(output_a2z), 11)
+  OUTPUT_a2zp=output_a2z
+  match, long(OUTPUT_A2Zp[*,0]), long(kic), ind1, ind2
+  OUTPUT_A2Zp1=OUTPUT_a2zp[ind1,*]
+  OUTPUT_A2Z=OUTPUT_A2Zp1
+  kic_s=kic(ind2)
+
+endif
+if (PARAMS[ii] eq 'oct_numax') then begin
+  
+  readcol, PATH_TABLE+'comp_results_APOKASC_all2.txt',  Kic, numax1 ,dnu1, numax2, dnu2, numax, skipline=1,  /silent, format='L'
+  restore, '/Users/lbugnet/DATA/METRIC/KEPLER/LC_APOKASC_0.700000_output_numax_all.sav', /verbose
+  ;readcol, '/Users/lbugnet/DATA/METRIC/KEPLER/POWVAR_A2Z_STARS.txt', OUTPUT_A2Z0, OUTPUT_A2Z1, format='L,D'
+  OUTPUT_A2Zp=dblarr(n_elements(output_a2z), 11)
+  OUTPUT_a2zp=output_a2z
+  match, long(OUTPUT_A2Zp[*,0]), long(kic), ind1, ind2
+  OUTPUT_A2Zp1=OUTPUT_a2zp[ind1,*]
+  OUTPUT_A2Z=OUTPUT_A2Zp1
+  kic_s=kic(ind2)
+
+endif
+if (PARAMS[ii] eq 'oct_dnu') then begin
+  readcol, PATH_TABLE+'comp_results_APOKASC_all2.txt',  Kic, numax1 ,dnu1, numax2, dnu2, numax, dnu, skipline=1,  /silent, format='L'
+  numax=dnu
+  restore, '/Users/lbugnet/DATA/METRIC/KEPLER/LC_APOKASC_0.700000_output_numax_all.sav', /verbose
+  ;readcol, '/Users/lbugnet/DATA/METRIC/KEPLER/POWVAR_A2Z_STARS.txt', OUTPUT_A2Z0, OUTPUT_A2Z1, format='L,D'
+  OUTPUT_A2Zp=dblarr(n_elements(output_a2z), 11)
+  OUTPUT_a2zp=output_a2z
+  match, long(OUTPUT_A2Zp[*,0]), long(kic), ind1, ind2
+  OUTPUT_A2Zp1=OUTPUT_a2zp[ind1,*]
+  OUTPUT_A2Z=OUTPUT_A2Zp1
+  kic_s=kic(ind2)
+
+endif
+
+if (PARAMS[ii] eq 'syd_numax') then begin
+  readcol, PATH_TABLE+'comp_results_APOKASC_all2.txt',  Kic, numax1 ,dnu1, numax2, dnu2, numax3, dnu3, numax, skipline=1,  /silent, format='L'
+  restore, '/Users/lbugnet/DATA/METRIC/KEPLER/LC_APOKASC_0.700000_output_numax_all.sav', /verbose
+  ;readcol, '/Users/lbugnet/DATA/METRIC/KEPLER/POWVAR_A2Z_STARS.txt', OUTPUT_A2Z0, OUTPUT_A2Z1, format='L,D'
+  OUTPUT_A2Zp=dblarr(n_elements(output_a2z), 11)
+  OUTPUT_a2zp=output_a2z
+  match, long(OUTPUT_A2Zp[*,0]), long(kic), ind1, ind2
+  OUTPUT_A2Zp1=OUTPUT_a2zp[ind1,*]
+  OUTPUT_A2Z=OUTPUT_A2Zp1
+  kic_s=kic(ind2)
+
+endif
+if (PARAMS[ii] eq 'syd_dnu') then begin 
+  readcol, PATH_TABLE+'comp_results_APOKASC_all2.txt',  Kic, numax1 ,dnu1, numax2, dnu2, numax3, dnu3, numax, dnu, skipline=1,  /silent, format='L'
+  numax=dnu
+  restore, '/Users/lbugnet/DATA/METRIC/KEPLER/LC_APOKASC_0.700000_output_numax_all.sav', /verbose
+  ;readcol, '/Users/lbugnet/DATA/METRIC/KEPLER/POWVAR_A2Z_STARS.txt', OUTPUT_A2Z0, OUTPUT_A2Z1, format='L,D'
+  OUTPUT_A2Zp=dblarr(n_elements(output_a2z), 11)
+  OUTPUT_a2zp=output_a2z
+  match, long(OUTPUT_A2Zp[*,0]), long(kic), ind1, ind2
+  OUTPUT_A2Zp1=OUTPUT_a2zp[ind1,*]
+  OUTPUT_A2Z=OUTPUT_A2Zp1
+  kic_s=kic(ind2)
+endif
+if (PARAMS[ii] eq 'dnu_APOKASC_A2ZP') then begin
+  restore, '/Users/lbugnet/DATA/TABLES/Results_ACF_MODEL_CCF_REFINE_MLEfit_v1.sav', /verbose
+  numax=OUT_PAR_ALL_MLE(4,*)
+  kic=LONG(OUT_PAR_ALL_MLE(0,*))
+  restore, '/Users/lbugnet/DATA/METRIC/KEPLER/LC_APOKASC_0.700000_output_numax_all.sav', /verbose
+  ;restore, '/Users/lbugnet/DATA/METRIC/KEPLER/LC__7_output_numax_all.sav', /verbose
+  ;readcol, '/Users/lbugnet/DATA/METRIC/KEPLER/POWVAR_A2Z_STARS.txt', OUTPUT_A2Z0, OUTPUT_A2Z1, format='L,D'
+  OUTPUT_A2Zp=dblarr(n_elements(output_a2z), 11)
+  OUTPUT_a2zp=output_a2z
+  match, long(OUTPUT_A2Zp[*,0]), long(kic), ind1, ind2
+  OUTPUT_A2Zp1=OUTPUT_a2zp[ind1,*]
+  OUTPUT_A2Z=OUTPUT_A2Zp1
+  numax=numax(ind2)
+  kic_s=kic(ind2)
+endif
+if (PARAMS[ii] eq 'dnu_APOKASC_A2Z') then begin
+  restore, PATH_TABLE+'results_A2Z_all.sav', /verbose  ;KIC_S, dnu, ednu, fmin, fmax, numax
+  numax=dnu
+  kic=kic_s
+  restore, '/Users/lbugnet/DATA/METRIC/KEPLER/LC_APOKASC_0.700000_output_numax_all.sav', /verbose
+  ;restore, '/Users/lbugnet/DATA/METRIC/KEPLER/LC__7_output_numax_all.sav', /verbose
+  ;readcol, '/Users/lbugnet/DATA/METRIC/KEPLER/POWVAR_A2Z_STARS.txt', OUTPUT_A2Z0, OUTPUT_A2Z1, format='L,D'
+  OUTPUT_A2Zp=dblarr(n_elements(output_a2z), 11)
+  OUTPUT_a2zp=output_a2z
+  match, long(OUTPUT_A2Zp[*,0]), long(kic), ind1, ind2
+  OUTPUT_A2Zp1=OUTPUT_a2zp[ind1,*]
+  OUTPUT_A2Z=OUTPUT_A2Zp1
+  numax=numax(ind2)
+  kic_s=kic(ind2)
+endif
+
+
+ ;--------------------------------------------------------------------
   ;-------------- COMPUTE SLOPE ---------------------------------------
   ;--------------------------------------------------------------------
 if COMPUTE_SLOPE eq 1 then begin
@@ -287,7 +421,7 @@ if COMPUTE_SLOPE eq 1 then begin
   kic_s=kic_s(i1)
   xx=alog10(numax(i1))
   yy=alog10(output_a2zp[i2,1])
-
+  ;yy=alog10(output_a2zp[i2,5]+output_a2zp[i2,1]-output_a2zp[i2,3]) ;median
   www=where(xx gt alog10(freq_inic_gr))
   xx_1=xx(www)
   yy_1=yy(www)
@@ -353,12 +487,14 @@ if COMPUTE_SLOPE eq 1 then begin
   slope_fit=res(0) + res(1)*xx
   residuals=residuals_ok
   threshold= 1*stddev(yy_ok)
+  global=''
   
 endif else if COMPUTE_SLOPE eq 0 then begin ;We take powvar slope from 15470 RG stars
-  
+  global='GLOBAL_LAW'
+  restore, '/Users/lbugnet/DATA/METRIC/KEPLER/KEPLER_varlaw_numax20J_ALL_KEPLER_LC0.700000_.sav', /verbose ; global law for numax
   if (PARAMS[ii] eq 'numax_savita_miss') then restore, '/Users/lbugnet/DATA/METRIC/KEPLER/KEPLER_varlaw_numax_savita_RG_LIST_1547020J_ALL_KEPLER_0.700000_.sav', /verbose
   if (PARAMS[ii] eq 'dnu_savita_miss') then restore, '/Users/lbugnet/DATA/METRIC/KEPLER/KEPLER_varlaw_dnu_savita_RG_LIST_1547020J_ALL_KEPLER_0.700000_.sav', /verbose
-  
+
   match,long(output_a2zp[*,0]),long(kic_s),i2,i1,count=n
   output_resize_b=output_a2zp[i2,*]
 
@@ -432,7 +568,6 @@ endif else if COMPUTE_SLOPE eq 0 then begin ;We take powvar slope from 15470 RG 
   slope_fit=res(0) + res(1)*xx
   residuals=residuals_ok
   threshold= 1*stddev(yy_ok)
-  
 endif
   ;--------------------------------------------------------------------
   ;--------- DETECT OUTLIERS ------------------------------------------
@@ -454,7 +589,7 @@ endif
   ;---------------------
   
   flag_bad_stars,  RES=RES, OUTPUT_RESIZE=OUTPUT_RESIZE, YY=YY, SLOPE_FIT=SLOPE_FIT, XX=XX, FLAG=FLAG, threshold=threshold
-  detect_outliers_powvar,  OUTPUT_RESIZE=OUTPUT_RESIZE, YY=YY, XX=XX, RES=RES, THRESHOLD=THRESHOLD, FLAG=FLAG, SLOPE_FIT=SLOPE_FIT, TYPE=TYPE, CHAMP=CHAMP, SOLAR_LIKE=SOLAR_LIKE, fill=fill,cadence=cadence, FREQ_INIC_GR=FREQ_INIC_GR, GOLD=GOLD, PARAM=PARAM, status=status, m_vrard=m_vrard, PATH_OUTPUT=PATH_OUTPUT
+  detect_outliers_powvar,  OUTPUT_RESIZE=OUTPUT_RESIZE, YY=YY, XX=XX, RES=RES, THRESHOLD=THRESHOLD, FLAG=FLAG, SLOPE_FIT=SLOPE_FIT, GLOBAL=GLOABL, TYPE=TYPE, CHAMP=CHAMP, SOLAR_LIKE=SOLAR_LIKE, fill=fill,cadence=cadence, FREQ_INIC_GR=FREQ_INIC_GR, GOLD=GOLD, PARAM=PARAM, status=status, m_vrard=m_vrard, PATH_OUTPUT=PATH_OUTPUT
   print, 'pourcentage out '+PARAMS[ii]+'='
   print, float(n_elements(where(flag eq 1))+n_elements(where(flag eq 2)))/float(n_elements(xx))*100.
 
@@ -491,143 +626,143 @@ ENDFOR ; END LOOP on PARAMS
     
     
     
-  if TYPE eq 'KEPLER' then begin
-    ;;------------------------- MATCH OUTLIERS ---------------------------------------------------
-    readcol, PATH_OUTPUT+TYPE+ '/'+SOLAR_LIKE+'detect_outliers_powvar_dnu_'+TYPE+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+SOLAR_LIKE+'_'+fill+'_'+'20J'+'low_stars.txt', kic_dnu,/silent,format='L'
-    readcol, PATH_OUTPUT+TYPE+ '/'+SOLAR_LIKE+'detect_outliers_powvar_numax_'+TYPE+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+SOLAR_LIKE+'_'+fill+'_'+'20J'+'low_stars.txt', kic_numax,/silent,format='L'
-
-    match, long(kic_dnu), long(kic_numax), i1, i2
-    print, 'tot_low_dnu'
-    print, n_elements(kic_dnu)
-    print, 'commun numax a2z'
-    print, n_elements(i1)
-
-    readcol, PATH_OUTPUT+TYPE+ '/'+SOLAR_LIKE+'detect_outliers_powvar_dnu_'+TYPE+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+SOLAR_LIKE+'_'+fill+'_'+'20J'+'high_stars.txt', kic_dnu,/silent,format='L'
-    readcol, PATH_OUTPUT+TYPE+ '/'+SOLAR_LIKE+'detect_outliers_powvar_numax_'+TYPE+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+SOLAR_LIKE+'_'+fill+'_'+'20J'+'high_stars.txt', kic_numax,/silent,format='L'
-
-    match, long(kic_dnu), long(kic_numax), i1, i2
-    print, 'tot_high_dnu'
-    print, n_elements(kic_dnu)
-    print, 'commun numax a2z'
-    print, n_elements(i1)
-
-    readcol, PATH_OUTPUT+TYPE+ '/'+SOLAR_LIKE+'detect_outliers_powvar_dnu_'+TYPE+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+SOLAR_LIKE+'_'+fill+'_'+'20J'+'OK_stars.txt', kic_dnu, /silent,format='L'
-    readcol, PATH_OUTPUT+TYPE+ '/'+SOLAR_LIKE+'detect_outliers_powvar_numax_'+TYPE+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+SOLAR_LIKE+'_'+fill+'_'+'20J'+'OK_stars.txt', kic_numax,/silent,format='L'
-
-    match, long(kic_dnu), long(kic_numax), i1, i2
-    print, 'tot_ok_dnu'
-    print, n_elements(kic_dnu)
-    print, 'commun numax a2z'
-    print, n_elements(i1)
-
-    ;;;  NUMAX OK BUT WRONG DNU
-    readcol, PATH_OUTPUT+TYPE+ '/'+SOLAR_LIKE+'detect_outliers_powvar_numax_'+TYPE+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+SOLAR_LIKE+'_'+fill+'_'+'20J'+'OK_stars.txt', kic_numax,/silent,format='L'
-    readcol, PATH_OUTPUT+TYPE+ '/'+SOLAR_LIKE+'detect_outliers_powvar_dnu_'+TYPE+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+SOLAR_LIKE+'_'+fill+'_'+'20J'+'high_stars.txt', kic_dnu1,/silent,format='L'
-    match, long(kic_numax), long(kic_dnu1), ind1, ind2
-    print, long(kic_numax(ind1))
-    readcol, PATH_OUTPUT+TYPE+ '/'+SOLAR_LIKE+'detect_outliers_powvar_dnu_'+TYPE+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+SOLAR_LIKE+'_'+fill+'_'+'20J'+'low_stars.txt', kic_dnu2,/silent,format='L'
-    match, long(kic_numax), long(kic_dnu2), ind11, ind22
-    print, long(kic_numax(ind11))
-
-
-    close, 2
-    openw, 2, PATH_OUTPUT+TYPE+ '/'+SOLAR_LIKE+'/numax_ok_dnu_a2z_bad.txt'
-    close,2
-    openw, 2,  PATH_OUTPUT+TYPE+ '/'+SOLAR_LIKE+'/numax_ok_dnu_a2z_bad.txt', /append
-    for ii=0, n_elements(kic_numax(ind11))-1 do printf, 2, long(kic_numax(ind11(ii)))
-    close,2
-    openw, 2,  PATH_OUTPUT+TYPE+ '/'+SOLAR_LIKE+'/numax_ok_dnu_a2z_bad.txt', /append
-    for ii=0, n_elements(kic_numax(ind1))-1 do printf, 2, long(kic_numax(ind1(ii)))
-    close, 2
-
-    ;;;  DNU OK BUT WRONG NUMAX
-    readcol, PATH_OUTPUT+TYPE+ '/'+SOLAR_LIKE+'detect_outliers_powvar_dnu_'+TYPE+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+SOLAR_LIKE+'_'+fill+'_'+'20J'+'OK_stars.txt', kic_numax,/silent,format='L'
-    readcol, PATH_OUTPUT+TYPE+ '/'+SOLAR_LIKE+'detect_outliers_powvar_numax_'+TYPE+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+SOLAR_LIKE+'_'+fill+'_'+'20J'+'high_stars.txt', kic_dnu1,/silent,format='L'
-    match, long(kic_numax), long(kic_dnu1), ind1, ind2
-    print, long(kic_numax(ind1))
-    readcol, PATH_OUTPUT+TYPE+ '/'+SOLAR_LIKE+'detect_outliers_powvar_numax_'+TYPE+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+SOLAR_LIKE+'_'+fill+'_'+'20J'+'low_stars.txt', kic_dnu2,/silent,format='L'
-    match, long(kic_numax), long(kic_dnu2), ind11, ind22
-    print, long(kic_numax(ind11))
-
-    close, 2
-    openw, 2, PATH_OUTPUT+TYPE+ '/'+SOLAR_LIKE+'/dnu_ok_numax_a2z_bad.txt'
-    close,2
-    openw, 2,  PATH_OUTPUT+TYPE+ '/'+SOLAR_LIKE+'/dnu_ok_numax_a2z_bad.txt', /append
-    for ii=0, n_elements(kic_numax(ind11))-1 do printf, 2, long(kic_numax(ind11(ii)))
-    close,2
-    openw, 2,  PATH_OUTPUT+TYPE+ '/'+SOLAR_LIKE+'/dnu_ok_numax_a2z_bad.txt', /append
-    for ii=0, n_elements(kic_numax(ind1))-1 do printf, 2, long(kic_numax(ind1(ii)))
-    close, 2
-    
-  
-  endif else if TYPE eq 'K2' then begin
- 
-    ;;------------------------- MATCH OUTLIERS ---------------------------------------------------
-    readcol, PATH_OUTPUT+TYPE+'/C'+CHAMP+'/detect_outliers_powvar_dnu_'+TYPE+'_'+CHAMP+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+'_low_stars.txt', kic_dnu,/silent,format='L'
-    readcol, PATH_OUTPUT+TYPE+'/C'+CHAMP+'/detect_outliers_powvar_numax_'+TYPE+'_'+CHAMP+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+'_low_stars.txt', kic_numax,/silent,format='L'
-
-    match, long(kic_dnu), long(kic_numax), i1, i2
-    print, 'tot_low_dnu'
-    print, n_elements(kic_dnu)
-    print, 'commun numax a2z'
-    print, n_elements(i1)
-
-    readcol, PATH_OUTPUT+TYPE+'/C'+CHAMP+'/detect_outliers_powvar_dnu_'+TYPE+'_'+CHAMP+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+'_high_stars.txt', kic_dnu,/silent,format='L'
-    readcol, PATH_OUTPUT+TYPE+'/C'+CHAMP+'/detect_outliers_powvar_numax_'+TYPE+'_'+CHAMP+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+'_high_stars.txt', kic_numax,/silent,format='L'
-
-    match, long(kic_dnu), long(kic_numax), i1, i2
-    print, 'tot_high_dnu'
-    print, n_elements(kic_dnu)
-    print, 'commun numax a2z'
-    print, n_elements(i1)
-
-    readcol, PATH_OUTPUT+TYPE+'/C'+CHAMP+'/detect_outliers_powvar_dnu_'+TYPE+'_'+CHAMP+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+'_OK_stars.txt', kic_dnu, /silent,format='L'
-    readcol, PATH_OUTPUT+TYPE+'/C'+CHAMP+'/detect_outliers_powvar_numax_'+TYPE+'_'+CHAMP+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+'_OK_stars.txt', kic_numax,/silent,format='L'
-
-    match, long(kic_dnu), long(kic_numax), i1, i2
-    print, 'tot_ok_dnu'
-    print, n_elements(kic_dnu)
-    print, 'commun numax a2z'
-    print, n_elements(i1)
-
-    ;;;  NUMAX OK BUT WRONG DNU
-    readcol, PATH_OUTPUT+TYPE+'/C'+CHAMP+'/detect_outliers_powvar_numax_'+TYPE+'_'+CHAMP+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+'_OK_stars.txt', kic_numax,/silent,format='L'
-    readcol, PATH_OUTPUT+TYPE+'/C'+CHAMP+'/detect_outliers_powvar_dnu_'+TYPE+'_'+CHAMP+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+'_high_stars.txt', kic_dnu1,/silent,format='L'
-    match, long(kic_numax), long(kic_dnu1), ind1, ind2
-    print, long(kic_numax(ind1))
-    readcol, PATH_OUTPUT+TYPE+'/C'+CHAMP+'/detect_outliers_powvar_dnu_'+TYPE+'_'+CHAMP+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+'_low_stars.txt', kic_dnu2,/silent,format='L'
-    match, long(kic_numax), long(kic_dnu2), ind11, ind22
-    print, long(kic_numax(ind11))
-
-
-    close, 2
-    openw, 2, PATH_OUTPUT+TYPE+'/C'+CHAMP+'/numax_ok_dnu_a2z_bad.txt'
-    close,2
-    openw, 2,  PATH_OUTPUT+TYPE+'/C'+CHAMP+'/numax_ok_dnu_a2z_bad.txt', /append
-    for ii=0, n_elements(kic_numax(ind11))-1 do printf, 2, long(kic_numax(ind11(ii)))
-    close,2
-    openw, 2,  PATH_OUTPUT+TYPE+'/C'+CHAMP+'/numax_ok_dnu_a2z_bad.txt', /append
-    for ii=0, n_elements(kic_numax(ind1))-1 do printf, 2, long(kic_numax(ind1(ii)))
-    close, 2
-
-    ;;;  DNU OK BUT WRONG NUMAX
-    readcol, PATH_OUTPUT+TYPE+'/C'+CHAMP+'/detect_outliers_powvar_dnu_'+TYPE+'_'+CHAMP+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+'_OK_stars.txt', kic_numax,/silent,format='L'
-    readcol, PATH_OUTPUT+TYPE+'/C'+CHAMP+'/detect_outliers_powvar_numax_'+TYPE+'_'+CHAMP+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+'_high_stars.txt', kic_dnu1,/silent,format='L'
-    match, long(kic_numax), long(kic_dnu1), ind1, ind2
-    print, long(kic_numax(ind1))
-    readcol, PATH_OUTPUT+TYPE+'/C'+CHAMP+'/detect_outliers_powvar_numax_'+TYPE+'_'+CHAMP+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+'_low_stars.txt', kic_dnu2,/silent,format='L'
-    match, long(kic_numax), long(kic_dnu2), ind11, ind22
-    print, long(kic_numax(ind11))
-
-    close, 2
-    openw, 2, PATH_OUTPUT+TYPE+'/C'+CHAMP+'/dnu_ok_numax_a2z_bad.txt'
-    close,2
-    openw, 2,  PATH_OUTPUT+TYPE+'/C'+CHAMP+'/dnu_ok_numax_a2z_bad.txt', /append
-    for ii=0, n_elements(kic_numax(ind11))-1 do printf, 2, long(out[ii,0]), long(out[ii,1])
-    close, 2 
-  
-  endif
-
+;  if TYPE eq 'KEPLER' then begin
+;    ;;------------------------- MATCH OUTLIERS ---------------------------------------------------
+;    readcol, PATH_OUTPUT+TYPE+ '/'+SOLAR_LIKE+'detect_outliers_powvar_dnu_'+TYPE+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+SOLAR_LIKE+'_'+fill+'_'+'20J'+'low_stars.txt', kic_dnu,/silent,format='L'
+;    readcol, PATH_OUTPUT+TYPE+ '/'+SOLAR_LIKE+'detect_outliers_powvar_numax_'+TYPE+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+SOLAR_LIKE+'_'+fill+'_'+'20J'+'low_stars.txt', kic_numax,/silent,format='L'
+;
+;    match, long(kic_dnu), long(kic_numax), i1, i2
+;    print, 'tot_low_dnu'
+;    print, n_elements(kic_dnu)
+;    print, 'commun numax a2z'
+;    print, n_elements(i1)
+;
+;    readcol, PATH_OUTPUT+TYPE+ '/'+SOLAR_LIKE+'detect_outliers_powvar_dnu_'+TYPE+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+SOLAR_LIKE+'_'+fill+'_'+'20J'+'high_stars.txt', kic_dnu,/silent,format='L'
+;    readcol, PATH_OUTPUT+TYPE+ '/'+SOLAR_LIKE+'detect_outliers_powvar_numax_'+TYPE+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+SOLAR_LIKE+'_'+fill+'_'+'20J'+'high_stars.txt', kic_numax,/silent,format='L'
+;
+;    match, long(kic_dnu), long(kic_numax), i1, i2
+;    print, 'tot_high_dnu'
+;    print, n_elements(kic_dnu)
+;    print, 'commun numax a2z'
+;    print, n_elements(i1)
+;
+;    readcol, PATH_OUTPUT+TYPE+ '/'+SOLAR_LIKE+'detect_outliers_powvar_dnu_'+TYPE+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+SOLAR_LIKE+'_'+fill+'_'+'20J'+'OK_stars.txt', kic_dnu, /silent,format='L'
+;    readcol, PATH_OUTPUT+TYPE+ '/'+SOLAR_LIKE+'detect_outliers_powvar_numax_'+TYPE+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+SOLAR_LIKE+'_'+fill+'_'+'20J'+'OK_stars.txt', kic_numax,/silent,format='L'
+;
+;    match, long(kic_dnu), long(kic_numax), i1, i2
+;    print, 'tot_ok_dnu'
+;    print, n_elements(kic_dnu)
+;    print, 'commun numax a2z'
+;    print, n_elements(i1)
+;
+;    ;;;  NUMAX OK BUT WRONG DNU
+;    readcol, PATH_OUTPUT+TYPE+ '/'+SOLAR_LIKE+'detect_outliers_powvar_numax_'+TYPE+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+SOLAR_LIKE+'_'+fill+'_'+'20J'+'OK_stars.txt', kic_numax,/silent,format='L'
+;    readcol, PATH_OUTPUT+TYPE+ '/'+SOLAR_LIKE+'detect_outliers_powvar_dnu_'+TYPE+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+SOLAR_LIKE+'_'+fill+'_'+'20J'+'high_stars.txt', kic_dnu1,/silent,format='L'
+;    match, long(kic_numax), long(kic_dnu1), ind1, ind2
+;    ;print, long(kic_numax(ind1))
+;    readcol, PATH_OUTPUT+TYPE+ '/'+SOLAR_LIKE+'detect_outliers_powvar_dnu_'+TYPE+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+SOLAR_LIKE+'_'+fill+'_'+'20J'+'low_stars.txt', kic_dnu2,/silent,format='L'
+;    match, long(kic_numax), long(kic_dnu2), ind11, ind22
+;    ;print, long(kic_numax(ind11))
+;
+;
+;    close, 2
+;    openw, 2, PATH_OUTPUT+TYPE+ '/'+SOLAR_LIKE+'/numax_ok_dnu_a2z_bad.txt'
+;    close,2
+;    openw, 2,  PATH_OUTPUT+TYPE+ '/'+SOLAR_LIKE+'/numax_ok_dnu_a2z_bad.txt', /append
+;    for ii=0, n_elements(kic_numax(ind11))-1 do printf, 2, long(kic_numax(ind11(ii)))
+;    close,2
+;    openw, 2,  PATH_OUTPUT+TYPE+ '/'+SOLAR_LIKE+'/numax_ok_dnu_a2z_bad.txt', /append
+;    for ii=0, n_elements(kic_numax(ind1))-1 do printf, 2, long(kic_numax(ind1(ii)))
+;    close, 2
+;
+;    ;;;  DNU OK BUT WRONG NUMAX
+;    readcol, PATH_OUTPUT+TYPE+ '/'+SOLAR_LIKE+'detect_outliers_powvar_dnu_'+TYPE+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+SOLAR_LIKE+'_'+fill+'_'+'20J'+'OK_stars.txt', kic_numax,/silent,format='L'
+;    readcol, PATH_OUTPUT+TYPE+ '/'+SOLAR_LIKE+'detect_outliers_powvar_numax_'+TYPE+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+SOLAR_LIKE+'_'+fill+'_'+'20J'+'high_stars.txt', kic_dnu1,/silent,format='L'
+;    match, long(kic_numax), long(kic_dnu1), ind1, ind2
+;    ;print, long(kic_numax(ind1))
+;    readcol, PATH_OUTPUT+TYPE+ '/'+SOLAR_LIKE+'detect_outliers_powvar_numax_'+TYPE+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+SOLAR_LIKE+'_'+fill+'_'+'20J'+'low_stars.txt', kic_dnu2,/silent,format='L'
+;    match, long(kic_numax), long(kic_dnu2), ind11, ind22
+;    ;print, long(kic_numax(ind11))
+;
+;    close, 2
+;    openw, 2, PATH_OUTPUT+TYPE+ '/'+SOLAR_LIKE+'/dnu_ok_numax_a2z_bad.txt'
+;    close,2
+;    openw, 2,  PATH_OUTPUT+TYPE+ '/'+SOLAR_LIKE+'/dnu_ok_numax_a2z_bad.txt', /append
+;    for ii=0, n_elements(kic_numax(ind11))-1 do printf, 2, long(kic_numax(ind11(ii)))
+;    close,2
+;    openw, 2,  PATH_OUTPUT+TYPE+ '/'+SOLAR_LIKE+'/dnu_ok_numax_a2z_bad.txt', /append
+;    for ii=0, n_elements(kic_numax(ind1))-1 do printf, 2, long(kic_numax(ind1(ii)))
+;    close, 2
+;    
+;  
+;  endif else if TYPE eq 'K2' then begin
+; 
+;    ;;------------------------- MATCH OUTLIERS ---------------------------------------------------
+;    readcol, PATH_OUTPUT+TYPE+'/C'+CHAMP+'/detect_outliers_powvar_dnu_'+TYPE+'_'+CHAMP+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+'_low_stars.txt', kic_dnu,/silent,format='L'
+;    readcol, PATH_OUTPUT+TYPE+'/C'+CHAMP+'/detect_outliers_powvar_numax_'+TYPE+'_'+CHAMP+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+'_low_stars.txt', kic_numax,/silent,format='L'
+;
+;    match, long(kic_dnu), long(kic_numax), i1, i2
+;    print, 'tot_low_dnu'
+;    print, n_elements(kic_dnu)
+;    print, 'commun numax a2z'
+;    print, n_elements(i1)
+;
+;    readcol, PATH_OUTPUT+TYPE+'/C'+CHAMP+'/detect_outliers_powvar_dnu_'+TYPE+'_'+CHAMP+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+'_high_stars.txt', kic_dnu,/silent,format='L'
+;    readcol, PATH_OUTPUT+TYPE+'/C'+CHAMP+'/detect_outliers_powvar_numax_'+TYPE+'_'+CHAMP+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+'_high_stars.txt', kic_numax,/silent,format='L'
+;
+;    match, long(kic_dnu), long(kic_numax), i1, i2
+;    print, 'tot_high_dnu'
+;    print, n_elements(kic_dnu)
+;    print, 'commun numax a2z'
+;    print, n_elements(i1)
+;
+;    readcol, PATH_OUTPUT+TYPE+'/C'+CHAMP+'/detect_outliers_powvar_dnu_'+TYPE+'_'+CHAMP+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+'_OK_stars.txt', kic_dnu, /silent,format='L'
+;    readcol, PATH_OUTPUT+TYPE+'/C'+CHAMP+'/detect_outliers_powvar_numax_'+TYPE+'_'+CHAMP+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+'_OK_stars.txt', kic_numax,/silent,format='L'
+;
+;    match, long(kic_dnu), long(kic_numax), i1, i2
+;    print, 'tot_ok_dnu'
+;    print, n_elements(kic_dnu)
+;    print, 'commun numax a2z'
+;    print, n_elements(i1)
+;
+;    ;;;  NUMAX OK BUT WRONG DNU
+;    readcol, PATH_OUTPUT+TYPE+'/C'+CHAMP+'/detect_outliers_powvar_numax_'+TYPE+'_'+CHAMP+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+'_OK_stars.txt', kic_numax,/silent,format='L'
+;    readcol, PATH_OUTPUT+TYPE+'/C'+CHAMP+'/detect_outliers_powvar_dnu_'+TYPE+'_'+CHAMP+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+'_high_stars.txt', kic_dnu1,/silent,format='L'
+;    match, long(kic_numax), long(kic_dnu1), ind1, ind2
+;    ;print, long(kic_numax(ind1))
+;    readcol, PATH_OUTPUT+TYPE+'/C'+CHAMP+'/detect_outliers_powvar_dnu_'+TYPE+'_'+CHAMP+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+'_low_stars.txt', kic_dnu2,/silent,format='L'
+;    match, long(kic_numax), long(kic_dnu2), ind11, ind22
+;    ;print, long(kic_numax(ind11))
+;
+;
+;    close, 2
+;    openw, 2, PATH_OUTPUT+TYPE+'/C'+CHAMP+'/numax_ok_dnu_a2z_bad.txt'
+;    close,2
+;    openw, 2,  PATH_OUTPUT+TYPE+'/C'+CHAMP+'/numax_ok_dnu_a2z_bad.txt', /append
+;    for ii=0, n_elements(kic_numax(ind11))-1 do printf, 2, long(kic_numax(ind11(ii)))
+;    close,2
+;    openw, 2,  PATH_OUTPUT+TYPE+'/C'+CHAMP+'/numax_ok_dnu_a2z_bad.txt', /append
+;    for ii=0, n_elements(kic_numax(ind1))-1 do printf, 2, long(kic_numax(ind1(ii)))
+;    close, 2
+;
+;    ;;;  DNU OK BUT WRONG NUMAX
+;    readcol, PATH_OUTPUT+TYPE+'/C'+CHAMP+'/detect_outliers_powvar_dnu_'+TYPE+'_'+CHAMP+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+'_OK_stars.txt', kic_numax,/silent,format='L'
+;    readcol, PATH_OUTPUT+TYPE+'/C'+CHAMP+'/detect_outliers_powvar_numax_'+TYPE+'_'+CHAMP+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+'_high_stars.txt', kic_dnu1,/silent,format='L'
+;    match, long(kic_numax), long(kic_dnu1), ind1, ind2
+;    ;print, long(kic_numax(ind1))
+;    readcol, PATH_OUTPUT+TYPE+'/C'+CHAMP+'/detect_outliers_powvar_numax_'+TYPE+'_'+CHAMP+'_'+GOLD+cadence+strtrim(freq_inic_gr,1)+'_low_stars.txt', kic_dnu2,/silent,format='L'
+;    match, long(kic_numax), long(kic_dnu2), ind11, ind22
+;    ;print, long(kic_numax(ind11))
+;
+;    close, 2
+;    openw, 2, PATH_OUTPUT+TYPE+'/C'+CHAMP+'/dnu_ok_numax_a2z_bad.txt'
+;    close,2
+;    openw, 2,  PATH_OUTPUT+TYPE+'/C'+CHAMP+'/dnu_ok_numax_a2z_bad.txt', /append
+;    for ii=0, n_elements(kic_numax(ind11))-1 do printf, 2, long(out[ii,0]), long(out[ii,1])
+;    close, 2 
+;  
+;  endif
+;
 
 ;--------------------------------------------------------------------;--------------------------------------------------------------------
 ;--------------------------------------------------------------------;--------------------------------------------------------------------
@@ -636,32 +771,32 @@ ENDFOR ; END LOOP on PARAMS
 
 endif else begin ; IF CALCUL_SLOPE=0 
   
-  restore, PATH_OUTPUT+TYPE+'/KEPLER_varlaw_20J_ALL.sav';, res, slope_fit, residuals, threshold, xx, yy ; a 20J
-  
-  if TYPE eq 'KEPLER' then begin
-    OUTPUT_A2Zp=OUTPUT_A2Z
-    restore, PATH_TABLE+'results_A2Z_all.sav', /verbose  ;KIC_S, dnu, ednu, fmin, fmax, numax
-    if SOLAR_LIKE eq 'SOLAR_LIKE' then begin
-      if (where(file_search(PATH_OUTPUT+TYPE+'/SOLAR_LIKE/A2Z_results_goldstd_sorted'+'.sav') eq '') eq 0) then begin
-        readcol, PATH_OUTPUT+TYPE+'/'+SOLAR_LIKE+'/A2Z_results_goldstd_sorted.txt', KIC_s, flag, fmin, fmax, numax, enumax,format='D,D,D,D,D,D,D', /silent
-        save, file=PATH_OUTPUT+TYPE+'/'+SOLAR_LIKE+'/A2Z_results_goldstd_sorted.sav', KIC_s, flag, fmin, fmax, numax, enumax
-      endif else begin
-        restore, PATH_OUTPUT+TYPE+'/'+SOLAR_LIKE+'/A2Z_results_goldstd_sorted.sav';, KIC_s, flag, fmin, fmax, numax, enumax
-      endelse
-    endif
-  endif
-
-
-  if TYPE eq 'K2' then begin
-    OUTPUT_A2Zp=OUTPUT_A2Z
-    if (where(file_search(PATH_OUTPUT+TYPE+'/ALL/A2Z_results_K2_ALL_Everest'+'.sav') eq '') eq 0) then begin
-      readcol, PATH_OUTPUT+TYPE+'/ALL/A2Z_results_K2_ALL_Everest.txt',kic_s, numax, err_numax,dnu, err_Dnu, Amax, err_Amax,  format='D,D,D,D,D,D,D', /silent
-      save, file=PATH_OUTPUT+TYPE+'/ALL/A2Z_results_K2_ALL_Everest'+ '.sav', kic_s, numax, err_numax,dnu, err_Dnu, Amax, err_Amax
-    endif else begin
-      restore, PATH_OUTPUT+TYPE+'/ALL/A2Z_results_K2_ALL_Everest.sav', /verbose ;kic_s, numax, err_numax,dnu, err_Dnu, Amax, err_Amax
-    endelse
-  endif
-  
+;  restore, PATH_OUTPUT+TYPE+'/KEPLER_varlaw_20J_ALL.sav';, res, slope_fit, residuals, threshold, xx, yy ; a 20J
+;  
+;  if TYPE eq 'KEPLER' then begin
+;    OUTPUT_A2Zp=OUTPUT_A2Z
+;    restore, PATH_TABLE+'results_A2Z_all.sav', /verbose  ;KIC_S, dnu, ednu, fmin, fmax, numax
+;    if SOLAR_LIKE eq 'SOLAR_LIKE' then begin
+;      if (where(file_search(PATH_OUTPUT+TYPE+'/SOLAR_LIKE/A2Z_results_goldstd_sorted'+'.sav') eq '') eq 0) then begin
+;        readcol, PATH_OUTPUT+TYPE+'/'+SOLAR_LIKE+'/A2Z_results_goldstd_sorted.txt', KIC_s, flag, fmin, fmax, numax, enumax,format='D,D,D,D,D,D,D', /silent
+;        save, file=PATH_OUTPUT+TYPE+'/'+SOLAR_LIKE+'/A2Z_results_goldstd_sorted.sav', KIC_s, flag, fmin, fmax, numax, enumax
+;      endif else begin
+;        restore, PATH_OUTPUT+TYPE+'/'+SOLAR_LIKE+'/A2Z_results_goldstd_sorted.sav';, KIC_s, flag, fmin, fmax, numax, enumax
+;      endelse
+;    endif
+;  endif
+;
+;
+;  if TYPE eq 'K2' then begin
+;    OUTPUT_A2Zp=OUTPUT_A2Z
+;    if (where(file_search(PATH_OUTPUT+TYPE+'/ALL/A2Z_results_K2_ALL_Everest'+'.sav') eq '') eq 0) then begin
+;      readcol, PATH_OUTPUT+TYPE+'/ALL/A2Z_results_K2_ALL_Everest.txt',kic_s, numax, err_numax,dnu, err_Dnu, Amax, err_Amax,  format='D,D,D,D,D,D,D', /silent
+;      save, file=PATH_OUTPUT+TYPE+'/ALL/A2Z_results_K2_ALL_Everest'+ '.sav', kic_s, numax, err_numax,dnu, err_Dnu, Amax, err_Amax
+;    endif else begin
+;      restore, PATH_OUTPUT+TYPE+'/ALL/A2Z_results_K2_ALL_Everest.sav', /verbose ;kic_s, numax, err_numax,dnu, err_Dnu, Amax, err_Amax
+;    endelse
+;  endif
+;  
 endelse
 
 END
