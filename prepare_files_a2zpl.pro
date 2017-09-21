@@ -57,6 +57,7 @@ PRO prepare_files_a2zpl,$
 ; 
 ;-
   
+  
   IF keyword_set(help) THEN BEGIN
     doc_library,'prepare_files_a2zpl', DIRECTORY='/Users/lbugnet/WORK/A2Zp/', PATH='/Users/lbugnet/WORK/A2Zp/'
     RETURN
@@ -80,6 +81,7 @@ if (n_elements(STAR_PATH_PSD_LIST) ne 0) then begin
   endif
   STAR_PATH_PSD=STAR_PATH_PSD_LIST(0)
   n_stars_tot=n_elements(STAR_PATH_PSD_LIST)
+  print, n_stars_tot, 'ouiiii'
   if STREGEX(STAR_PATH_PSD, 'K2') ne -1 then begin 
     TYPE='K2'
     champ=''
@@ -138,7 +140,12 @@ if (n_elements(FILE_OUTPUT_A2Z_PATH) ne 0) then begin
 endif
 
 if (n_elements(STAR_KIC_LIST_TXT) ne 0) then begin
-  readcol, STAR_KIC_LIST_TXT, STAR_KIC_LIST, STRINGSKIP='#', format='A', /silent
+  if (STREGEX(STAR_KIC_LIST_TXT, 'txt') ne -1) then begin
+    readcol, STAR_KIC_LIST_TXT, STAR_KIC_LIST, STRINGSKIP='#', format='A', /silent
+  endif else if ((STREGEX(STAR_KIC_LIST_TXT, 'sav') ne -1) and (STREGEX(STAR_KIC_LIST_TXT, 'APOKASC') ne -1)) then begin
+    restore, STAR_KIC_LIST_TXT, /verbose
+    STAR_KIC_LIST=long(output_par_all[*,0])
+  endif
   n_stars_tot=n_elements(STAR_KIC_LIST)
   STAR_KIC=STAR_KIC_LIST(0)
   if (STREGEX(STAR_KIC_LIST_TXT, 'K2') ne -1) then begin
@@ -149,7 +156,8 @@ if (n_elements(STAR_KIC_LIST_TXT) ne 0) then begin
     if (file_dirname(STAR_KIC_LIST_TXT) eq (path_K2_ALL)) or (STREGEX(STAR_KIC_LIST_TXT, 'ALL') ne -1) or (STREGEX(STAR_KIC_LIST_TXT, 'C*') eq -1) then champ='ALL'
   endif
     if (STREGEX(STAR_KIC_LIST_TXT, 'KEPLER') ne -1) or (STREGEX(STAR_KIC_LIST_TXT, 'DR25') ne -1) or STREGEX(STAR_KIC_LIST_TXT, 'K00') ne -1 then TYPE='KEPLER'
-
+    if (STREGEX(STAR_KIC_LIST_TXT, 'APOKASC') ne -1) then TYPE='KEPLER'
+    if ((STREGEX(STAR_KIC_LIST_TXT, 'Vrard') ne -1) and (type eq '')) then TYPE='KEPLER'
   print, 'TYPE=', TYPE
 endif
 
@@ -167,8 +175,9 @@ if (n_elements(STAR_PATH_KIC_LIST) ne 0) then begin
     if (file_dirname(STAR_PATH_KIC_LIST) eq (path_K2_ALL)) or (STREGEX(STAR_PATH_KIC_LIST, 'ALL') ne -1) or (STREGEX(STAR_PATH_KIC_LIST, 'C*') eq -1) then champ='ALL'
   endif
     if (STREGEX(STAR_PATH_KIC_LIST, 'KEPLER') ne -1) or (STREGEX(STAR_PATH_KIC_LIST, 'K00') ne -1) then TYPE='KEPLER'
-
+    
   print, 'TYPE=', TYPE
 endif
-  
+  ;print, 'n_stars_tot ='
+  ;print, n_stars_tot
 END

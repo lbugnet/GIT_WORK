@@ -1,11 +1,11 @@
 PRO POWVAR, $
 ;IN
 STAR_TAB_PSD=STAR_TAB_PSD,   FREQ_INIC_GR, FREQ_FIN_GR, FREQ_INIC_GR_NS, FREQ_FIN_GR_NS, ID_STAR=ID_STAR, STAR_PATH_PSD=STAR_PATH_PSD,$
-  STAR_PATH_LC=STAR_PATH_LC, kpp=kpp, EPIC=EPIC, CADENCE=CADENCE, MAG_COR=MAG_COR, HELP=HELP, PATH_OUTPUT=PATH_OUTPUT, PATH_DATA=PATH_DATA, PATH_TABLE=PATH_TABLE,$
+  STAR_PATH_LC=STAR_PATH_LC, kpp=kpp, EPIC=EPIC, CADENCE=CADENCE, MAG_COR=MAG_COR, HELP=HELP, PATH_OUTPUT=PATH_OUTPUT, PATH_DATA=PATH_DATA, PATH_TABLE=PATH_TABLE, KEPMAG=KEPMAG,AV=AV,TEFF=TEFF, FEH=FEH, RADIUS=RADIUS, HMAG=HMAG,$
 ;OUT
 OUTPUT_A2Z_1=OUTPUT_A2Z_1
 
-;TESSSSTTTTT22222
+
 ;+
 ; :Author: Lisa BUGNET
 
@@ -119,6 +119,12 @@ if MAG_COR eq 1 then begin
   if ((CADENCE eq 'LC') or (CADENCE eq '')) then begin
     if n_elements(star_path_psd) ne 0 then begin
       Kp=sxpar(headfits(STAR_PATH_PSD), 'KEPMAG')
+      KEPMAG=Kp
+      AV=sxpar(headfits(STAR_PATH_PSD), 'AV')
+      TEFF=sxpar(headfits(STAR_PATH_PSD), 'TEFF')
+      FEH=sxpar(headfits(STAR_PATH_PSD), 'FEH')
+      RADIUS=sxpar(headfits(STAR_PATH_PSD), 'RADIUS')
+      HMAG=sxpar(headfits(STAR_PATH_PSD), 'HMAG')
     endif
     if n_elements(star_path_lc) ne 0 then begin
       match, long(id_star), long(EPIC), i1, i2

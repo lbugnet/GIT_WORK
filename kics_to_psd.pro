@@ -1,4 +1,4 @@
-PRO KICS_TO_PSD, STAR_KIC=STAR_KIC, STAR_TAB_PSD=STAR_TAB_PSD, TYPE=TYPE, CHAMP=CHAMP
+PRO KICS_TO_PSD, STAR_KIC=STAR_KIC, STAR_TAB_PSD=STAR_TAB_PSD, TYPE=TYPE, CHAMP=CHAMP, EXTENSION=EXTENSION, STAR_PATH_PSD=STAR_PATH_PSD
 
   ;---------------------------------------------------------------------------
   ;------------------------- IN ----------------------------------------------
@@ -15,7 +15,7 @@ PRO KICS_TO_PSD, STAR_KIC=STAR_KIC, STAR_TAB_PSD=STAR_TAB_PSD, TYPE=TYPE, CHAMP=
   ;
   ;--- STAR_TAB_PSD contient freq/power des etoiles --------------------------
   ;---------------------------------------------------------------------------
-  
+
   if TYPE eq 'K2' then begin
     EPIC=STAR_KIC
     STAR_PATH_LC='/Volumes/TEMP/K2/GAP/JOEL/C'+strcompress(long(CHAMP))+'/rescale_C'+strcompress(long(CHAMP))+'/hlsp_everest_k2_llc_'+strcompress(long(EPIC))+'-c0'+strcompress(long(CHAMP))+'_kepler_v2.0_lc.txt.clean.res.hipass.rescale'
