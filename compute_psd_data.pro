@@ -112,7 +112,7 @@ if (n_elements(STAR_PATH_PSD) ne 0) then begin
   EXTENSION='txt'
   sav=strpos(STAR_PATH_PSD, 'sav')
   if sav ne -1 then EXTENSION='sav'
-  fits=strpos(STAR_PATH_PSD, 'fits')
+  fits=stregex(STAR_PATH_PSD, 'fits')
   if fits ne -1 then EXTENSION='fits'
   PSD_PATH_TO_PSD, STAR_PATH_PSD=STAR_PATH_PSD, STAR_TAB_PSD=STAR_TAB_PSD, EXTENSION=EXTENSION
   if TYPE eq 'K2' then ID_STAR=STRMID(STAR_PATH_PSD, 60, 9)

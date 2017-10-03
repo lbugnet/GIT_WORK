@@ -16,7 +16,6 @@ restore, '/Users/lbugnet/DATA/TABLES/results_A2Z_all.sav', /verbose  ;KIC_S, dnu
 match, long(kic_s), long(output_a2z[*,0]), i1,i2, count=nn
 output_a2z=output_a2z[i2,*]
 
-
 ;kic=kic(where(strpos(prov(2,*), 'SPE') eq 0))
 match, long(kic), long(output_a2z[*,0]), i1,i2, count=nn
 
@@ -90,7 +89,8 @@ restore, '/Users/lbugnet/TABLE/Q1_17_closeout_starproperties_final.idl', /verbos
 restore, '/Users/lbugnet/DATA/METRIC/KEPLER/KEPLER_varlaw_20J_ALL_KEPLER_LC0.700000_.sav', /verbose
 ;ll=legend(target=[pp1,pp2], position=[2.3,7.5] , /DATA, /AUTO_TEXT_COLOR)
 
-restore, '/Users/lbugnet/DATA/TABLES/results_A2Z_all.sav', /verbose  ;KIC_S, dnu, ednu, fmin, fmax, numax
+;restore, '/Users/lbugnet/DATA/TABLES/results_A2Z_all.sav', /verbose  ;KIC_S, dnu, ednu, fmin, fmax, numax
+readcol, '/Users/lbugnet/DATA/METRIC/KEPLER/POWVAR_A2Z_STARS.txt', kic_s
 match, long(kic_s), long(output_a2z[*,0]), i1,i2, count=nn
 output_a2z=output_a2z[i2,*]
 
@@ -106,7 +106,7 @@ for ii=0, n_elements(xx)-1 do begin
 endfor
 wmid=where(flag eq '')
 pp=plot(10^xx(wmid), 10^yy(wmid),   ylog=1, xr=[0,4],yr=[10,1e6], dim=[700,500], axis_style=1, font_name='Times', font_size=13, xtitle='$log_{10}(g)$', ytitle='$POWVAR (ppm^2/ \mu Hz)$',symbol="o", SYM_FILLED=1, color="black",linestyle="none", transparency=80, sym_size=0.75);'title="ALL KEPLER RED GIANTS WITH M AND NUMAX KNOWN")
-
+stop
 readcol, '/Users/lbugnet/DATA/METRIC/KEPLER/detect_outliers_powvar_KEPLER_LC0.700000__20Jhigh_stars.txt', KIC_high
 readcol, '/Users/lbugnet/DATA/METRIC/KEPLER/detect_outliers_powvar_KEPLER_LC0.700000__20Jlow_stars.txt', KIC_low
 

@@ -9,18 +9,27 @@ restore, '/Users/lbugnet/DATA/TABLES/results_A2Z_all.sav', /verbose
 match, long(KIC_s), long(output_a2z[*,0]), i1,i2
 
   flag=strarr(n_elements(xx))
+  stop
   for ii=0, n_elements(xx)-1 do begin
     if (10^yy(ii)) gt (10^(slope_fit(ii)+threshold)) then flag(ii)='up'
     if (10^yy(ii)) lt (10^(slope_fit(ii)-threshold)) then flag(ii)='down'
   endfor
   wup=where(flag eq 'up')
-  p=plot(numax(i1(wup)), output_a2z[i2(wup),1], xlog=1, ylog=1, dim=[700,500], xr=[1, 3e2], yr=[10,1e6], axis_style=1,transparency=50, xtitle='$\nu_{max} (\mu Hz)$', ytitle='POWVAR $(ppm^2/ \mu Hz)$',  color='lime green', font_size=13, linestyle='none', symbol='o', font_name='Times',sym_size=0.75, sym_filled=1)
+  wup2=where(numax(i1(wup)) ne 0)
+  out_up=output_a2z[i2(wup(wup2)),*]
+  p=plot(numax(i1(wup(wup2))), output_a2z[i2(wup(wup2)),1], xlog=1, ylog=1, dim=[700,500], xr=[0.1, 3e2], yr=[10,1e6], axis_style=1,transparency=50, xtitle='$\nu_{max} (\mu Hz)$', ytitle='POWVAR $(ppm^2/ \mu Hz)$',  color='lime green', font_size=13, linestyle='none', symbol='o', font_name='Times',sym_size=0.75, sym_filled=1)
   wdown=where(flag eq 'down')
-  p=plot(numax(i1(wdown)), output_a2z[i2(wdown),1], xlog=1, ylog=1,  transparency=50,  /overplot, color='dark magenta', font_size=13, linestyle='none', symbol='o', sym_size=0.75,sym_filled=1)
+  wdown2=where(numax(i1(wdown)) ne 0)
+  out_do=output_a2z[i2(wdown(wdown2)),*]
+  p=plot(numax(i1(wdown(wdown2))), out_do(*,1), xlog=1, ylog=1,  transparency=50,  /overplot, color='dark magenta', font_size=13, linestyle='none', symbol='o', sym_size=0.75,sym_filled=1)
   wn=where(xx gt alog10(1))
+  ;wn=where(xx gt 0.001)
+  stop
   rr=sort(xx(wn))
-  poly=polygon([10^xx(wn(rr)), reverse(10^xx(wn(rr)))], [10^(slope_fit(wn(rr))+threshold), reverse(10^(slope_fit(wn(rr))-threshold))],target=p, /DATA,FILL_BACKGROUND=1,  FILL_COLOR="crimson", FILL_TRANSPARENCY=70, TRANSPARENCY=99)
+  ;rr=sort(xx)
+  ;poly=polygon([10^xx(wn(rr)), reverse(10^xx(wn(rr)))], [10^(slope_fit(wn(rr))+threshold), reverse(10^(slope_fit(wn(rr))-threshold))],target=p, /DATA,FILL_BACKGROUND=1,  FILL_COLOR="crimson", FILL_TRANSPARENCY=70, TRANSPARENCY=99)
   wmid=where(flag eq '')
+  out_mid=output_a2z[i2(wmid),*]
   p=plot(numax(i1(wmid)), output_a2z[i2(wmid),1], xlog=1, ylog=1, linestyle='none', transparency=80, symbol='o', sym_filled=1, sym_size=0.75, /overplot)
   pp5=plot(10^xx, 10^(slope_fit), xlog=1, ylog=1,color="crimson",linestyle=1 ,/overplot, transparency=99 )
   pp5.thick=3
@@ -41,22 +50,48 @@ match, long(KIC_s), long(output_a2z[*,0]), i1,i2
   p=plot([38.2610,38.2610], [10^yy, 10^yy], xlog=1, ylog=1, linestyle='none', transparency=0, symbol='star', sym_filled=1, color='orange', sym_size=3.25, /overplot)
   p=plot([38.2610,38.2610], [10^yy, 10^yy], xlog=1, ylog=1, linestyle='none', transparency=0, symbol='star', sym_filled=0, sym_thick=2, color='black', sym_size=3.25, /overplot)
   t1 = TEXT(22, 200,  'KIC 2011582' , /DATA, FONT_SIZE=12, font_name='Times')
-p.save, '/Users/lbugnet/Documents/powvar.png'
+;p.save, '/Users/lbugnet/Documents/powvar.png'
    
-   stop
+stop
 ; ZOOM
-p=plot(numax(i1(wup)), output_a2z[i2(wup),1], dim=[300,500],xlog=1, ylog=1,  transparency=50,  xr=[10,150], yr=[1e2,1e4], axis_style=1, xtitle='$\nu_{max} (\mu Hz)$', ytitle='POWVAR $(ppm^2/ \mu Hz)$',  color='lime green', font_size=13, linestyle='none', symbol='o', sym_size=0.75, sym_filled=1)
-p=plot(numax(i1(wdown)), output_a2z[i2(wdown),1], xlog=1, ylog=1,  transparency=50,  /overplot, color='dark magenta', font_size=13, linestyle='none', symbol='o', sym_size=0.75,sym_filled=1)
-poly=polygon([10^xx(wn(rr)), reverse(10^xx(wn(rr)))], [10^(slope_fit(wn(rr))+threshold), reverse(10^(slope_fit(wn(rr))-threshold))],target=p, /DATA,FILL_BACKGROUND=1,  FILL_COLOR="crimson", FILL_TRANSPARENCY=70, TRANSPARENCY=99)
-p=plot(numax(i1(wmid)), output_a2z[i2(wmid),1], xlog=1, ylog=1, linestyle='none',transparency=90, symbol='o', sym_filled=1, sym_size=0.75, /overplot)
-pp5=plot(10^xx, 10^(slope_fit), xlog=1, ylog=1,color="crimson",linestyle=1 ,/overplot, transparency=99 )
-pp5.thick=3
+;p=plot(numax(i1(wup)), output_a2z[i2(wup),1], dim=[300,500],xlog=1, ylog=1,  transparency=50,  xr=[10,150], yr=[1e2,1e4], axis_style=1, xtitle='$\nu_{max} (\mu Hz)$', ytitle='POWVAR $(ppm^2/ \mu Hz)$',  color='lime green', font_size=13, linestyle='none', symbol='o', sym_size=0.75, sym_filled=1)
+;p=plot(numax(i1(wdown)), output_a2z[i2(wdown),1], xlog=1, ylog=1,  transparency=50,  /overplot, color='dark magenta', font_size=13, linestyle='none', symbol='o', sym_size=0.75,sym_filled=1)
+;poly=polygon([10^xx(wn(rr)), reverse(10^xx(wn(rr)))], [10^(slope_fit(wn(rr))+threshold), reverse(10^(slope_fit(wn(rr))-threshold))],target=p, /DATA,FILL_BACKGROUND=1,  FILL_COLOR="crimson", FILL_TRANSPARENCY=70, TRANSPARENCY=99)
+;p=plot(numax(i1(wmid)), output_a2z[i2(wmid),1], xlog=1, ylog=1, linestyle='none',transparency=90, symbol='o', sym_filled=1, sym_size=0.75, /overplot)
+;pp5=plot(10^xx, 10^(slope_fit), xlog=1, ylog=1,color="crimson",linestyle=1 ,/overplot, transparency=99 )
+;pp5.thick=3
+
+
+;---------------------------------------------------------------------------------
+;ALL STARS LOG(G)
+;---------------------------------------------------------------------------------
+
+restore, '/Users/lbugnet/TABLE/Q1_17_closeout_starproperties_final.idl', /verbose
+match, long(kic), long(out_mid[*,0]), i1, imid
+stop
+xx=alog10(logg(i1))
+yy=(out_mid(imid,1))
+  pp=plot(10^xx, yy, xr=[0.1,5], yr=[10,1e6], ylog=1, dim=[800,450], font_size=13, font_name='Times', xlog=0, xtitle='Log(g)', ytitle='$POWVAR (ppm^2/ \mu Hz)$',symbol="D", SYM_FILLED=1, transparency=99, sym_size=1.5, color="black",linestyle="none");'title="ALL KEPLER RED GIANTS WITH M AND NUMAX KNOWN")
+
+match, long(kic), long(out_up[*,0]), i1, iup
+xx=alog10(logg(i1))
+yy=(out_mid(iup,1))
+
+  pp=plot(10^xx, yy,  ylog=1, symbol="D", transparency=60, sym_size=1.5,name='HIGH POWER STARS',SYM_FILLED=1, color="lime green",linestyle="none", /overplot);'title="ALL KEPLER RED GIANTS WITH M AND NUMAX KNOWN")
+
+
+match, long(kic), long(out_do[*,0]), i1, ilow
+xx=alog10(logg(i1))
+yy=(out_mid(ilow,1))
+
+  pp=plot(10^xx, yy,  ylog=1, symbol="D", transparency=80, sym_size=1.5,name='LOW POWER STARS', SYM_FILLED=1, color="dark magenta",linestyle="none", /overplot);'title="ALL KEPLER RED GIANTS WITH M AND NUMAX KNOWN")
+  ;pp.save, '/Users/lbugnet/DATA/METRIC/KEPLER/powvar_teff.png'
 
 stop
 ;---------------------------------------------------------------------------------
 ;MASS
 ;---------------------------------------------------------------------------------
-
+all='all'
 restore, '/Users/lbugnet/TABLE/Q1_17_closeout_starproperties_final.idl', /verbose
 if all eq 'all' then begin
   restore, '/Users/lbugnet/DATA/METRIC/KEPLER/LC__0.700000_output_numax_all.sav', /verbose

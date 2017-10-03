@@ -298,7 +298,7 @@ if (PARAMS[ii] eq 'can_dnu') then begin
   OUTPUT_A2Z=OUTPUT_A2Zp1
 endif
 if (PARAMS[ii] eq 'cor_numax') then begin
-  readcol, PATH_TABLE+'comp_results_APOKASC_all2.txt',  Kic, numax1 ,dnu1, numax, skipline=1,  /silent, format='L'
+  readcol, PATH_TABLE+'comp_results_APOKASC_all2.txt',  Kic, numax1 ,dnu1, numax, dnu, skipline=1,  /silent, format='L'
   restore, '/Users/lbugnet/DATA/METRIC/KEPLER/LC_APOKASC_0.700000_output_numax_all.sav', /verbose
   ;readcol, '/Users/lbugnet/DATA/METRIC/KEPLER/POWVAR_A2Z_STARS.txt', OUTPUT_A2Z0, OUTPUT_A2Z1, format='L,D'
   OUTPUT_A2Zp=dblarr(n_elements(output_a2z), 11)
@@ -306,7 +306,8 @@ if (PARAMS[ii] eq 'cor_numax') then begin
   match, long(OUTPUT_A2Zp[*,0]), long(kic), ind1, ind2
   OUTPUT_A2Zp1=OUTPUT_a2zp[ind1,*]
   OUTPUT_A2Z=OUTPUT_A2Zp1
-    kic_s=kic(ind2)
+  kic_s=kic(ind2)
+
 
 endif
 if (PARAMS[ii] eq 'cor_dnu') then begin
@@ -404,7 +405,15 @@ if (PARAMS[ii] eq 'dnu_APOKASC_A2Z') then begin
   kic_s=kic(ind2)
 endif
 
-
+GG=1
+if GG eq 1 then begin
+  ;plot en logg
+  restore, '/Users/lbugnet/DATA/TABLES/Q1_17_closeout_starproperties_final_DR25_MAthur_Catalogue.sav', /verbose
+  Teff=Teff_in
+  FDRM, dnu, numax, Teff, R, M, logg
+  numax=logg
+endif
+  
  ;--------------------------------------------------------------------
   ;-------------- COMPUTE SLOPE ---------------------------------------
   ;--------------------------------------------------------------------
@@ -486,7 +495,7 @@ if COMPUTE_SLOPE eq 1 then begin
   res=res_ok
   slope_fit=res(0) + res(1)*xx
   residuals=residuals_ok
-  threshold= 1*stddev(yy_ok)
+  ;threshold= 1*stddev(yy_ok)
   global=''
   
 endif else if COMPUTE_SLOPE eq 0 then begin ;We take powvar slope from 15470 RG stars
@@ -567,7 +576,7 @@ endif else if COMPUTE_SLOPE eq 0 then begin ;We take powvar slope from 15470 RG 
   res=res_ok
   slope_fit=res(0) + res(1)*xx
   residuals=residuals_ok
-  threshold= 1*stddev(yy_ok)
+  ;threshold= 1*stddev(yy_ok)
 endif
   ;--------------------------------------------------------------------
   ;--------- DETECT OUTLIERS ------------------------------------------
@@ -589,7 +598,7 @@ endif
   ;---------------------
   
   flag_bad_stars,  RES=RES, OUTPUT_RESIZE=OUTPUT_RESIZE, YY=YY, SLOPE_FIT=SLOPE_FIT, XX=XX, FLAG=FLAG, threshold=threshold
-  detect_outliers_powvar,  OUTPUT_RESIZE=OUTPUT_RESIZE, YY=YY, XX=XX, RES=RES, THRESHOLD=THRESHOLD, FLAG=FLAG, SLOPE_FIT=SLOPE_FIT, GLOBAL=GLOABL, TYPE=TYPE, CHAMP=CHAMP, SOLAR_LIKE=SOLAR_LIKE, fill=fill,cadence=cadence, FREQ_INIC_GR=FREQ_INIC_GR, GOLD=GOLD, PARAM=PARAM, status=status, m_vrard=m_vrard, PATH_OUTPUT=PATH_OUTPUT
+  detect_outliers_powvar,  OUTPUT_RESIZE=OUTPUT_RESIZE, YY=YY, XX=XX, RES=RES, THRESHOLD=THRESHOLD, FLAG=FLAG, SLOPE_FIT=SLOPE_FIT, GLOBAL=GLOABL, TYPE=TYPE, CHAMP=CHAMP, SOLAR_LIKE=SOLAR_LIKE, fill=fill,cadence=cadence, FREQ_INIC_GR=FREQ_INIC_GR, GOLD=GOLD, PARAM=PARAM, status=status, m_vrard=m_vrard, PATH_OUTPUT=PATH_OUTPUT, GG=GG
   print, 'pourcentage out '+PARAMS[ii]+'='
   print, float(n_elements(where(flag eq 1))+n_elements(where(flag eq 2)))/float(n_elements(xx))*100.
 
