@@ -90,5 +90,15 @@ if (STREGEX(file_KIC_PATH, 'APOKASC') NE -1) and ((STREGEX(file_KIC_PATH, 'high'
     ENDFOR
   ENDIF
 ENDIF
+
+if (STREGEX(file_KIC_PATH, 'sav') NE -1) then begin
+  restore, file_kic_path, /verbose
+  kic=bad(*,0)
+  files=file_search(files_dir_in, '*.jpg')
+    FOR i=0l,n_elements(kic)-1 DO BEGIN
+      FILE_COPY, files((i)), directory_out
+
+    ENDFOR
+endif
 stop
 END
